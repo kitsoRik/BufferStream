@@ -7,8 +7,10 @@ BufferStream::BufferStream(Buffer* buffer, const BufferStream::TypeStream& typeS
 	m_typeStream = typeStream;
 }
 
-BufferStream& BufferStream::writeString(const char* s, const unsigned int& size)
+BufferStream& BufferStream::writeString(const char* s)
 {
+	unsigned int size = 0;
+	while (s[size++]);
 	*this << size;
 	for (unsigned int i = 0; i < size; i++)
 		* this << s[i];
@@ -27,6 +29,27 @@ BufferStream& BufferStream::readString(char*& s)
 		s[i] = c;
 	}
 	s[size] = 0;
+	return *this;
+}
+
+BufferStream& BufferStream::writeData(const unsigned char* s, const unsigned int &size)
+{
+	*this << size;
+	for (unsigned int i = 0; i < size; i++)
+		* this << s[i];
+	return *this;
+}
+
+BufferStream& BufferStream::readData(unsigned char*& d, unsigned int &size)
+{
+	*this >> size;
+	d = new unsigned char[size];
+	for (unsigned int i = 0; i < size; i++)
+	{
+		char c;
+		*this >> c;
+		d[i] = c;
+	}
 	return *this;
 }
 
@@ -107,8 +130,8 @@ BufferStream& BufferStream::operator <<(float& n)
 	m_buffer->resize(m_buffer->size + sizeof(n));
 	for (unsigned int i = 0; i < sizeof(n); i++)
 	{
-		char *s = reinterpret_cast<char *>(&n);
-		writeString(s, sizeof(n));
+		unsigned char *s = reinterpret_cast<unsigned char *>(&n);
+		writeData(s, sizeof(n));
 	}
 	return *this;
 }
@@ -120,8 +143,8 @@ BufferStream& BufferStream::operator <<(double& n)
 	m_buffer->resize(m_buffer->size + sizeof(n));
 	for (unsigned int i = 0; i < sizeof(n); i++)
 	{
-		char *s = reinterpret_cast<char *>(&n);
-		writeString(s, sizeof(n));
+		unsigned char *s = reinterpret_cast<unsigned char *>(&n);
+		writeData(s, sizeof(n));
 	}
 	return *this;
 }
@@ -217,8 +240,9 @@ BufferStream& BufferStream::operator >> (float& n)
 {
 	if (m_typeStream == ReadOnly)
 		throw "Read only stream";
-	char* c = new char[sizeof(n)];
-	readString(c);
+	unsigned char* c = new unsigned char[sizeof(n)];
+	unsigned int size;
+	readData(c, size);
 	n = *reinterpret_cast<int*>(c);
 	delete[] c;
 	return *this;
@@ -228,8 +252,9 @@ BufferStream& BufferStream::operator >> (double& n)
 {
 	if (m_typeStream == ReadOnly)
 		throw "Read only stream";
-	char* c = new char[sizeof(n)];
-	readString(c);
+	unsigned char* c = new unsigned char[sizeof(n)];
+	unsigned int size;
+	readData(c, size);
 	n = *reinterpret_cast<int*>(c);
 	delete[] c;
 	return *this;

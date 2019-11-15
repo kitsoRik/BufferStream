@@ -14,8 +14,11 @@ public:
 
 	BufferStream(Buffer* buffer, const TypeStream& typeStream);
 
-	BufferStream& writeString(const char* s, const unsigned int& size);
+	BufferStream& writeString(const char* s);
 	BufferStream& readString(char*& s);
+
+	BufferStream& writeData(const unsigned char* s, const unsigned int &size);
+	BufferStream& readData(unsigned char*& d, unsigned int &size);
 
 	BufferStream& operator <<(const char& c);
 	BufferStream& operator <<(const unsigned char& c) { return *this << char(c); }
